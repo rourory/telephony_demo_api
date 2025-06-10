@@ -1,7 +1,5 @@
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "../../../../../prisma/prisma-clent";
-import initMiddleware from "../../../../../lib/init-middleware";
-import Cors from "cors";
-import { NextApiRequest, NextApiResponse } from "next";
 
 // const allowedOrigins: [
 //   "http://localhost:3000",
@@ -9,20 +7,8 @@ import { NextApiRequest, NextApiResponse } from "next";
 //   "https://telephony-demo-api.vercel.app"
 // ];
 
-const cors = initMiddleware(
-  Cors({
-    methods: ["GET", "POST", "OPTIONS"],
-    origin: "http://localhost:3000",
-  })
-);
-
-export async function GET(
-  req: NextApiRequest,
-  res: NextApiResponse<{ message: string }>
-) {
-  cors(req, res);
-
-  const archived = req.body.nextUrl.searchParams.get("archived") || "";
+export async function GET(req: NextRequest) {
+  const archived = req.nextUrl.searchParams.get("archived") || "";
 
   const users = await prisma.administration.findMany({
     where: {
@@ -30,7 +16,11 @@ export async function GET(
     },
   });
 
-  res.json({ message: JSON.stringify(users) });
+  const res = NextResponse.json(users);
 
-  return res;
+  res.headers.set("Access-Control-Allow-Origin", "http://localhost:3000");
+  res.headers.set("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
+  res.headers.set("Access-Control-Allow-Headers", "Content-Type");
+
+  return NextResponse.json(users);
 }
