@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "../../../../../prisma/prisma-clent";
 import bcrypt from "bcryptjs";
+import { use } from "react";
 
 interface Credentials {
   username: string;
@@ -17,15 +18,19 @@ export async function POST(req: NextRequest) {
   });
 
   if (!user || user.username !== body.username) {
-    return NextResponse.json({ messages: ["User not found"] }, { status: 401 });
+    return NextResponse.json(
+      { messages: ["Пользователь не найден"] },
+      { status: 401 }
+    );
   }
 
   const salt = bcrypt.genSaltSync(10);
   const hash = bcrypt.hashSync(body.password, salt);
+  const valid = bcrypt.compareSync(user.password, hash);
 
-  if (user.password !== hash) {
+  if (!valid) {
     return NextResponse.json(
-      { messages: ["Password incorrect", `${user.password} != ${hash}`] },
+      { messages: ["Неверный пароль!"] },
       { status: 401 }
     );
   }
