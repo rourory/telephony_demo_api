@@ -3,5 +3,5 @@ import { prisma } from "../../../../prisma/prisma-clent";
 
 export async function GET() {
   const administration = prisma.administration.findMany();
-  return NextResponse.json(administration);
+  return NextResponse.json({ data: administration });
 }
