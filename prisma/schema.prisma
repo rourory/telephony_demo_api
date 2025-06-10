@@ -11,7 +11,7 @@ datasource db {
 model administration {
   id                 Int       @id @default(autoincrement())
   roleId             Int       @map("role_id")
-  userName           String    @map("user_name") @db.VarChar(255)
+  username           String    @map("user_name") @db.VarChar(255)
   squadNumber        Int?      @map("squad_number")
   password           String    @default("{noop}password") @map("password") @db.VarChar(255)
   passwordChangeDate DateTime? @map("password_change_date") @db.Timestamp(6)
