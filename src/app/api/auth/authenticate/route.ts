@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
 
   if (user.password !== hash) {
     return NextResponse.json(
-      { messages: ["Password incorrect"] },
+      { messages: ["Password incorrect", `${user.password} != ${hash}`] },
       { status: 401 }
     );
   }
