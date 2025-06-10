@@ -1,0 +1,375 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model administration {
+  id                   Int       @id @default(autoincrement())
+  role_id              Int
+  user_name            String    @db.VarChar(255)
+  squad_number         Int?
+  password             String    @default("{noop}password") @db.VarChar(255)
+  password_change_date DateTime? @db.Timestamp(6)
+  archived             Boolean?  @default(false)
+  role                 role      @relation(fields: [role_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_administration_role_1")
+  calls                calls[]
+}
+
+model call_result_types {
+  id                          Int     @id @default(autoincrement())
+  call_result_type_name       String  @db.VarChar(255)
+  call_result_type_short_name String  @db.VarChar(255)
+  calls                       calls[]
+}
+
+model call_tryings {
+  id          Int    @id @default(autoincrement())
+  contact_id  Int?
+  call_id     Int?
+  trying_date DateTime  @default(now()) @db.Timestamp(6)
+  calls       calls?    @relation(fields: [call_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  contacts    contacts? @relation(fields: [contact_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model calls {
+  id                Int              @id @default(autoincrement())
+  convicted_id      Int
+  relative_id       Int?
+  contact_id        Int?
+  administration_id Int
+  call_start_time   DateTime            @db.Timestamp(6)
+  call_finish_time  DateTime?           @db.Timestamp(6)
+  result_id         Int?
+  video_path        String?             @db.VarChar(255)
+  call_tryings      call_tryings[]
+  call_result_types call_result_types?  @relation(fields: [result_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  administration    administration      @relation(fields: [administration_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_calls_administration_1")
+  contacts          contacts?           @relation(fields: [contact_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_calls_contacts_1")
+  convicted         convicted           @relation(fields: [convicted_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_calls_convicted_1")
+  relatives         relatives?          @relation(fields: [relative_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_calls_relatives_1")
+  recognized_speech recognized_speech[]
+}
+
+model contact_types {
+  id                      Int        @id @default(autoincrement())
+  contact_type_name       String     @db.VarChar(255)
+  contact_type_short_name String     @db.VarChar(255)
+  contacts                contacts[]
+}
+
+model contacts {
+  id              Int         @id @default(autoincrement())
+  contact_value   String         @db.VarChar(255)
+  contact_type_id Int
+  relative_id     Int
+  created_by      String         @default("Неизвестно") @db.VarChar
+  updated_by      String         @default("Неизвестно") @db.VarChar
+  created_at      DateTime       @default(now()) @db.Timestamp(6)
+  updated_at      DateTime       @default(now()) @db.Timestamp(6)
+  frozen          Boolean        @default(false)
+  call_tryings    call_tryings[]
+  calls           calls[]
+  contact_types   contact_types  @relation(fields: [contact_type_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_contacts_contact_types_1")
+  relatives       relatives      @relation(fields: [relative_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_contacts_relatives_1")
+}
+
+model contacts_aud {
+  id              Int    @default(autoincrement())
+  rev             Int
+  revtype         Int       @db.SmallInt
+  contact_value   String?   @db.VarChar(255)
+  contact_type_id Int?
+  relative_id     Int?
+  created_by      String?   @db.VarChar
+  updated_by      String?   @db.VarChar
+  created_at      DateTime? @db.Timestamp(6)
+  updated_at      DateTime? @db.Timestamp(6)
+  frozen          Boolean?
+  revinfo         revinfo   @relation(fields: [rev], references: [rev], onDelete: NoAction, onUpdate: NoAction)
+
+  @@id([id, rev])
+}
+
+model convicted {
+  id                     Int                   @id @default(autoincrement())
+  first_name             String                   @db.VarChar(255)
+  second_name            String                   @db.VarChar(255)
+  middle_name            String?                  @db.VarChar(255)
+  squad_number           Int
+  created_by             String                   @default("Неизвестно") @db.VarChar
+  updated_by             String                   @default("Неизвестно") @db.VarChar
+  created_at             DateTime                 @default(now()) @db.Timestamp(6)
+  updated_at             DateTime                 @default(now()) @db.Timestamp(6)
+  personal_file_number   Int                      @unique @default(dbgenerated("round((((random() * (10000)::double precision) * (random() * (10000)::double precision)) + (random() + (10)::double precision)))"))
+  is_under_control       Boolean                  @default(false)
+  archived               Boolean                  @default(false)
+  calls                  calls[]
+  extra_call_permissions extra_call_permissions[]
+  recognized_speech      recognized_speech[]
+  relatives              relatives[]
+}
+
+model convicted_aud {
+  id                   Int    @default(autoincrement())
+  rev                  Int
+  revtype              Int       @db.SmallInt
+  first_name           String?   @db.VarChar(255)
+  second_name          String?   @db.VarChar(255)
+  middle_name          String?   @db.VarChar(255)
+  squad_number         Int?
+  created_by           String?   @db.VarChar
+  updated_by           String?   @db.VarChar
+  created_at           DateTime? @db.Timestamp(6)
+  updated_at           DateTime? @db.Timestamp(6)
+  is_under_control     Boolean?
+  personal_file_number Int?
+  archived             Boolean?
+  revinfo              revinfo   @relation(fields: [rev], references: [rev], onDelete: NoAction, onUpdate: NoAction)
+
+  @@id([id, rev])
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model databasechangelog {
+  id            String   @db.VarChar(255)
+  author        String   @db.VarChar(255)
+  filename      String   @db.VarChar(255)
+  dateexecuted  DateTime @db.Timestamp(6)
+  orderexecuted Int
+  exectype      String   @db.VarChar(10)
+  md5sum        String?  @db.VarChar(35)
+  description   String?  @db.VarChar(255)
+  comments      String?  @db.VarChar(255)
+  tag           String?  @db.VarChar(255)
+  liquibase     String?  @db.VarChar(20)
+  contexts      String?  @db.VarChar(255)
+  labels        String?  @db.VarChar(255)
+  deployment_id String?  @db.VarChar(10)
+
+  @@ignore
+}
+
+model databasechangeloglock {
+  id          Int       @id
+  locked      Boolean
+  lockgranted DateTime? @db.Timestamp(6)
+  lockedby    String?   @db.VarChar(255)
+}
+
+model devices {
+  id                              Int     @id @default(autoincrement())
+  number                          Int
+  ip                              String  @db.VarChar(16)
+  recording_service_video_path    String  @db.VarChar(255)
+  vnc_username                    String  @db.VarChar(50)
+  vnc_password                    String  @db.VarChar(50)
+  vnc_service_port                Int
+  recording_service_port          Int
+  audio_streaming_service_port    Int
+  speech_streaming_service_port   Int
+  ui_controlling_service_port     Int
+  power_management_service_port   Int     @default(13005)
+  device_password                 String  @default("password") @db.VarChar(255)
+  vnc_view_only                   Boolean @default(true)
+  speech_recognition_service_port Int     @default(13005)
+  speech_recognizing_enabled      Boolean @default(false)
+}
+
+model envers_actions {
+  id                 Int    @id @default(autoincrement())
+  action_type_number Int    @db.SmallInt
+  action_type_name   String @db.VarChar
+}
+
+model extra_call_permissions {
+  id                  Int              @id @default(autoincrement())
+  convicted_id        Int
+  commiting_date      DateTime?           @db.Timestamp(6)
+  created_by          String              @default("Неизвестно") @db.VarChar
+  updated_by          String              @default("Неизвестно") @db.VarChar
+  created_at          DateTime            @default(now()) @db.Timestamp(6)
+  updated_at          DateTime            @default(now()) @db.Timestamp(6)
+  duration            Int                 @default(1)
+  convicted           convicted           @relation(fields: [convicted_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  permitted_durations permitted_durations @relation(fields: [duration], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model jwt_black_list {
+  id       Int   @id @default(autoincrement())
+  expired  DateTime @db.Timestamp(6)
+  inserted DateTime @db.Timestamp(6)
+  token    String   @default("") @db.VarChar(1020)
+}
+
+model marked_words {
+  id         Int    @id @default(autoincrement())
+  word       String    @unique @db.VarChar
+  root       String    @unique @db.VarChar
+  created_by String?   @db.VarChar
+  updated_by String?   @db.VarChar
+  created_at DateTime? @db.Timestamp(6)
+  updated_at DateTime? @db.Timestamp(6)
+}
+
+model permitted_durations {
+  id                     Int                      @id @default(autoincrement())
+  duration               Int                      @unique
+  created_by             String                   @default("Неизвестно") @db.VarChar
+  updated_by             String                   @default("Неизвестно") @db.VarChar
+  created_at             DateTime                 @default(now()) @db.Timestamp(6)
+  updated_at             DateTime                 @default(now()) @db.Timestamp(6)
+  extra_call_permissions extra_call_permissions[]
+  settings               settings[]
+}
+
+model recognized_speech {
+  id             Int    @id @default(autoincrement())
+  call_id        Int
+  relative_said  String?   @db.VarChar(2000)
+  convicted_said String?   @db.VarChar(2000)
+  created_by     String    @default("Неизвестно") @db.VarChar
+  updated_by     String    @default("Неизвестно") @db.VarChar
+  created_at     DateTime  @default(now()) @db.Timestamp(6)
+  updated_at     DateTime  @default(now()) @db.Timestamp(6)
+  convicted_id   Int
+  calls          calls     @relation(fields: [call_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  convicted      convicted @relation(fields: [convicted_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model relation_types {
+  id                       Int         @id @default(autoincrement())
+  relation_type_name       String      @db.VarChar(255)
+  relation_type_short_name String      @db.VarChar(255)
+  relatives                relatives[]
+}
+
+model relatives {
+  id             Int         @id @default(autoincrement())
+  first_name     String         @db.VarChar(255)
+  second_name    String         @db.VarChar(255)
+  middle_name    String?        @db.VarChar(255)
+  relation_type  Int
+  convicted_id   Int
+  created_by     String         @default("Неизвестно") @db.VarChar
+  updated_by     String         @default("Неизвестно") @db.VarChar
+  created_at     DateTime       @default(now()) @db.Timestamp(6)
+  updated_at     DateTime       @default(now()) @db.Timestamp(6)
+  calls          calls[]
+  contacts       contacts[]
+  convicted      convicted      @relation(fields: [convicted_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_relatives_convicted_1")
+  relation_types relation_types @relation(fields: [relation_type], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_relatives_relation_types_1")
+}
+
+model relatives_aud {
+  id            Int    @default(autoincrement())
+  rev           Int
+  revtype       Int       @db.SmallInt
+  first_name    String?   @db.VarChar(255)
+  second_name   String?   @db.VarChar(255)
+  middle_name   String?   @db.VarChar(255)
+  relation_type Int?
+  convicted_id  Int?
+  created_by    String?   @db.VarChar
+  updated_by    String?   @db.VarChar
+  created_at    DateTime? @db.Timestamp(6)
+  updated_at    DateTime? @db.Timestamp(6)
+  revinfo       revinfo   @relation(fields: [rev], references: [rev], onDelete: NoAction, onUpdate: NoAction)
+
+  @@id([id, rev])
+}
+
+model revinfo {
+  rev           Int          @id @default(autoincrement())
+  revtstmp      Int
+  username      String          @db.VarChar
+  contacts_aud  contacts_aud[]
+  convicted_aud convicted_aud[]
+  relatives_aud relatives_aud[]
+}
+
+model role {
+  id             Int              @id @default(autoincrement())
+  role_name      String           @db.VarChar(255)
+  administration administration[]
+  ui_permissions ui_permissions?
+}
+
+model settings {
+  id                                       Int                 @id @default(autoincrement())
+  before_timer_ends_warning_minutes        Int                 @default(5)
+  standard_call_duration                   Int                 @default(1)
+  change_password_required_interval_months Int                 @default(3)
+  permitted_durations                      permitted_durations @relation(fields: [standard_call_duration], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model ui_permissions {
+  id                                                     Int       @id @default(autoincrement())
+  role_id                                                Int       @unique
+  can_give_calls_to_another_squad                        Boolean   @default(true)
+  convicted_page_permitted                               Boolean   @default(false)
+  convicted_page_edit_permitted                          Boolean   @default(false)
+  convicted_page_delete_permitted                        Boolean   @default(false)
+  convicted_page_relative_data_grid_permitted            Boolean   @default(false)
+  convicted_page_relative_data_grid_edit_permitted       Boolean   @default(false)
+  convicted_page_relative_data_grid_delete_permitted     Boolean   @default(false)
+  convicted_page_calls_data_grid_permitted               Boolean   @default(false)
+  convicted_page_calls_data_grid_edit_permitted          Boolean   @default(false)
+  convicted_page_calls_data_grid_delete_permitted        Boolean   @default(false)
+  calls_page_permitted                                   Boolean   @default(false)
+  calls_page_edit_permitted                              Boolean   @default(false)
+  calls_page_delete_permitted                            Boolean   @default(false)
+  devices_page_permitted                                 Boolean   @default(false)
+  devices_page_edit_permitted                            Boolean   @default(false)
+  devices_page_delete_permitted                          Boolean   @default(false)
+  administration_page_permitted                          Boolean   @default(false)
+  administration_page_edit_permitted                     Boolean   @default(false)
+  administration_page_delete_permitted                   Boolean   @default(false)
+  settings_page_permitted                                Boolean   @default(false)
+  permissions_data_grid_permitted                        Boolean   @default(false)
+  permissions_data_grid_edit_permitted                   Boolean   @default(false)
+  permissions_data_grid_delete_permitted                 Boolean   @default(false)
+  temporary_giving_calls_to_another_squad                DateTime? @db.Timestamp(6)
+  temporary_giving_calls_to_another_squad_hours          Int?
+  relative_data_grid_contacts_data_grid_permitted        Boolean   @default(false)
+  relative_data_grid_contacts_data_grid_edit_permitted   Boolean   @default(false)
+  relative_data_grid_contacts_data_grid_delete_permitted Boolean   @default(false)
+  roles_data_grid_permitted                              Boolean   @default(false)
+  roles_data_grid_edit_permitted                         Boolean   @default(false)
+  roles_data_grid_delete_permitted                       Boolean   @default(false)
+  audition_page_permitted                                Boolean   @default(false)
+  audition_columns_permitted                             Boolean   @default(false)
+  vnc_controlling_permitted                              Boolean   @default(false)
+  durations_page_permitted                               Boolean   @default(false)
+  durations_page_edit_permitted                          Boolean   @default(false)
+  durations_page_delete_permitted                        Boolean   @default(false)
+  extra_call_page_permitted                              Boolean   @default(false)
+  extra_call_page_edit_permitted                         Boolean   @default(false)
+  extra_call_page_delete_permitted                       Boolean   @default(false)
+  call_tryings_data_grid_permitted                       Boolean   @default(false)
+  call_tryings_data_grid_edit_permitted                  Boolean   @default(false)
+  call_tryings_data_grid_delete_permitted                Boolean   @default(false)
+  can_give_calls_to_controlled                           Boolean   @default(false)
+  settings_tab_permitted                                 Boolean   @default(false)
+  data_page_permitted                                    Boolean   @default(false)
+  data_page_contacts_data_grid_permitted                 Boolean   @default(false)
+  data_page_contacts_data_grid_edit_permitted            Boolean   @default(false)
+  data_page_contacts_data_grid_delete_permitted          Boolean   @default(false)
+  data_page_recognized_speech_dg_permitted               Boolean   @default(false)
+  data_page_recognized_speech_dg_edit_permitted          Boolean   @default(false)
+  data_page_recognized_speech_dg_delete_permitted        Boolean   @default(false)
+  conv_page_recognized_speech_dg_permitted               Boolean   @default(false)
+  conv_page_recognized_speech_dg_edit_permitted          Boolean   @default(false)
+  conv_page_recognized_speech_dg_delete_permitted        Boolean   @default(false)
+  marked_words_page_permitted                            Boolean   @default(false)
+  marked_words_page_edit_permitted                       Boolean   @default(false)
+  marked_words_page_delete_permitted                     Boolean   @default(false)
+  statistics_page_permitted                              Boolean   @default(false)
+  add_relative_photo_permitted                           Boolean   @default(false)
+  delete_relative_photo_permitted                        Boolean   @default(false)
+  role                                                   role      @relation(fields: [role_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
