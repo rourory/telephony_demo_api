@@ -33,6 +33,7 @@ export async function POST(req: NextRequest) {
   }
 
   return NextResponse.json({
-    data: { user: { ...user, password: undefined }, token: "mock" },
+    user: { ...user, password: undefined },
+    token: "mock",
   });
 }
