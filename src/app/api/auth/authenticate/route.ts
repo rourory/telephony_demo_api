@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
   }
 
   const valid = bcrypt.compareSync(body.password, user.password);
-  
+
   if (!valid) {
     return NextResponse.json(
       { messages: ["Неверный пароль!"] },
@@ -32,5 +32,7 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  return NextResponse.json({ data: { user: user, token: "mock" } });
+  return NextResponse.json({
+    data: { user: { ...user, password: undefined }, token: "mock" },
+  });
 }
