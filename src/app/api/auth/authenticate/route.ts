@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "../../../../../prisma/prisma-clent";
 import bcrypt from "bcryptjs";
-import { use } from "react";
 
 interface Credentials {
   username: string;
@@ -24,10 +23,8 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const salt = bcrypt.genSaltSync(10);
-  const hash = bcrypt.hashSync(body.password, salt);
-  const valid = bcrypt.compareSync(user.password, hash);
-
+  const valid = bcrypt.compareSync(body.password, user.password);
+  
   if (!valid) {
     return NextResponse.json(
       { messages: ["Неверный пароль!"] },
