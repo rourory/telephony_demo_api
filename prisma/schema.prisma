@@ -164,7 +164,7 @@ model databasechangeloglock {
 model devices {
   id                           Int     @id @default(autoincrement())
   number                       Int
-  ip                           String  @map("ip_address") @db.VarChar(16)
+  ip                           String  @map("ip") @db.VarChar(16)
   recordingServiceVideoPath    String  @map("recording_service_video_path") @db.VarChar(255)
   vncUsername                  String  @map("vnc_username") @db.VarChar(50)
   vncPassword                  String  @map("vnc_password") @db.VarChar(50)
