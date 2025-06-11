@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "../../../../../prisma/prisma-clent";
+import { prisma } from "../../../../../../prisma/prisma-clent";
 
 export async function GET(req: NextRequest) {
   const archived = req.nextUrl.searchParams.get("archived") || "";

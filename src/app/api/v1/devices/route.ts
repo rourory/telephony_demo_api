@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { parseSort } from "../../../../lib/parse-sort";
-import { prisma } from "../../../../prisma/prisma-clent";
+import { parseSort } from "../../../../../lib/parse-sort";
+import { prisma } from "../../../../../prisma/prisma-clent";
 
 export async function GET(req: NextRequest) {
   const requireTotalCount =

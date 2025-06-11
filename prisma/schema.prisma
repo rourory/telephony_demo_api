@@ -105,7 +105,7 @@ model convicted {
   updatedBy              String                   @default("Неизвестно") @map("updated_by") @db.VarChar
   createdAt              DateTime                 @default(now()) @map("created_at") @db.Timestamp(6)
   updatedAt              DateTime                 @default(now()) @map("updated_at") @db.Timestamp(6)
-  personalFileNumber     Int                      @unique @default(dbgenerated("round((((random() * (10000)::double precision) * (random() * (10000)::double precision)) + (random() + (10)::double precision)))")) @map("personalFileNumber")
+  personalFileNumber     Int                      @unique @default(dbgenerated("round((((random() * (10000)::double precision) * (random() * (10000)::double precision)) + (random() + (10)::double precision)))")) @map("personal_file_number")
   isUnderControl         Boolean                  @default(false) @map("is_under_control")
   archived               Boolean                  @default(false) @map("archived")
   calls                  calls[]

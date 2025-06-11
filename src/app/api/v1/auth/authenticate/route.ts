@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "../../../../../prisma/prisma-clent";
+import { prisma } from "../../../../../../prisma/prisma-clent";
 import bcrypt from "bcryptjs";
 
 interface Credentials {
