@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { prisma } from "../../../../../prisma/prisma-clent";
+import { proceedTypicalDevextremeRequest } from "../../../../../lib/make-devextreme-request";
 
 export async function GET(req: NextRequest) {
-  const markedWords = await prisma.marked_words.findMany();
-  return NextResponse.json({ data: markedWords });
+  return await proceedTypicalDevextremeRequest(prisma.marked_words, req);
 }

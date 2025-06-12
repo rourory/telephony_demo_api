@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { prisma } from "../../../../../prisma/prisma-clent";
+import { proceedTypicalDevextremeRequest } from "../../../../../lib/make-devextreme-request";
 
 export async function GET(req: NextRequest) {
-  const settings = await prisma.settings.findMany();
-  return NextResponse.json({ data: settings });
+  return await proceedTypicalDevextremeRequest(prisma.settings, req);
 }

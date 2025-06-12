@@ -2,7 +2,6 @@
 
 import { NextURL } from "next/dist/server/web/next-url";
 
-// prismaQueryParser.ts
 // Утилита для парсинга DevExtreme-параметров в аргументы Prisma с TypeScript-типизацией.
 
 /** Операторы фильтрации */
@@ -36,16 +35,16 @@ export type CompositeFilter = Array<FilterClause | LogicalOperator>;
 /** Тип параметра filter из query */
 export type RawFilter = FilterClause | CompositeFilter;
 
-/** Элемент сортировки */
+/** Элемент сортировки в JSON-массиве */
 export interface SortDescriptor {
   selector: string;
-  desc: boolean;
+  desc?: boolean;
 }
 
 /** Параметры для парсинга */
 export interface QueryParams {
   filter?: string; // JSON-stringified RawFilter
-  sort?: string; // JSON-stringified SortDescriptor[]
+  sort?: string; // JSON-stringified SortDescriptor[] или простое имя поля
   skip?: string; // числа как строки
   take?: string;
   requireTotalCount?: string; // 'true' | 'false'
@@ -65,7 +64,7 @@ export interface ParsedOptions {
   requireTotalCount: boolean;
 }
 
-/** Map a single filter clause to a Prisma where condition. */
+/** Map одного FilterClause в Prisma-условие */
 function mapClause(clause: FilterClause): Record<string, any> {
   const [field, operator, value] = clause;
   switch (operator) {
@@ -102,42 +101,65 @@ function mapClause(clause: FilterClause): Record<string, any> {
   }
 }
 
-/** Recursively parse filter array into Prisma where object. */
+/** Рекурсивно парсим DevExtreme-фильтр в Prisma-where */
 function parseFilter(filter: RawFilter): Record<string, any> {
   if (
     Array.isArray(filter) &&
     typeof filter[0] === "string" &&
     typeof filter[1] === "string"
   ) {
-    if (!Array.isArray(filter[0])) {
-      return mapClause(filter as FilterClause);
-    }
+    // это одиночный FilterClause
+    return mapClause(filter as FilterClause);
   }
-  if (Array.isArray(filter)) {
-    const conditions: Record<string, any>[] = [];
-    for (let i = 0; i < filter.length; i += 2) {
-      conditions.push(parseFilter(filter[i] as RawFilter));
-    }
-    const op = filter[1] as LogicalOperator;
-    if (op === "and") return { AND: conditions };
-    if (op === "or") return { OR: conditions };
-    throw new Error(`Unsupported logical operator: ${op}`);
+
+  // составной фильтр [cond1, 'and', cond2, 'or', cond3, ...]
+  const conditions: Record<string, any>[] = [];
+  for (let i = 0; i < filter.length; i += 2) {
+    conditions.push(parseFilter(filter[i] as RawFilter));
   }
-  return {};
+  const op = filter[1] as LogicalOperator;
+  if (op === "and") return { AND: conditions };
+  if (op === "or") return { OR: conditions };
+  throw new Error(`Unsupported logical operator: ${op}`);
 }
 
-/** Parse sort parameter into Prisma orderBy array. */
-function parseSort(
-  sortArr: SortDescriptor[]
-): Array<Record<string, "asc" | "desc">> {
-  return sortArr.map(({ selector, desc }) => ({
+/** Парсинг sort-параметра в orderBy для Prisma */
+function parseSortParam(
+  sortParam?: string
+): Array<Record<string, "asc" | "desc">> | undefined {
+  if (!sortParam) return undefined;
+
+  let descriptors: SortDescriptor[] = [];
+
+  // Попытка распарсить JSON
+  try {
+    const parsed = JSON.parse(sortParam);
+    if (Array.isArray(parsed)) {
+      // JSON-массив объектов { selector, desc? }
+      descriptors = parsed.map((d: any) => ({
+        selector: String(d.selector),
+        desc: Boolean(d.desc),
+      }));
+    } else if (typeof parsed === "string") {
+      // JSON-строка: "fieldName"
+      descriptors = [{ selector: parsed, desc: false }];
+    } else {
+      throw new Error();
+    }
+  } catch {
+    // не JSON — считаем, что это просто имя поля без кавычек
+    descriptors = [{ selector: sortParam, desc: false }];
+  }
+
+  // Переводим в формат Prisma
+  return descriptors.map(({ selector, desc }) => ({
     [selector]: desc ? "desc" : "asc",
   }));
 }
 
 /**
- * Основная функция: конвертация query-параметров в аргументы Prisma, включая флаг requireTotalCount.
- * @returns ParsedOptions
+ * Основная функция: конвертация query-параметров из NextURL
+ * в аргументы Prisma + флаг requireTotalCount.
  */
 export function parseDevextremeOptions(url: NextURL): ParsedOptions {
   const query: QueryParams = {
@@ -150,7 +172,7 @@ export function parseDevextremeOptions(url: NextURL): ParsedOptions {
 
   const prismaOptions: PrismaOptions = {};
 
-  // Парсим filter
+  // 1) Фильтрация
   if (query.filter) {
     let raw: RawFilter;
     try {
@@ -161,26 +183,14 @@ export function parseDevextremeOptions(url: NextURL): ParsedOptions {
     prismaOptions.where = parseFilter(raw);
   }
 
-  // Парсим sort
-  if (query.sort) {
-    let rawSort: SortDescriptor[];
-    try {
-      rawSort = JSON.parse(query.sort);
-    } catch {
-      throw new Error("Invalid JSON in sort parameter");
-    }
-    prismaOptions.orderBy = parseSort(rawSort);
-  }
+  // 2) Сортировка
+  prismaOptions.orderBy = parseSortParam(query.sort);
 
-  // Пагинация
-  if (query.skip !== undefined) {
-    prismaOptions.skip = Number(query.skip);
-  }
-  if (query.take !== undefined) {
-    prismaOptions.take = Number(query.take);
-  }
+  // 3) Пагинация
+  if (query.skip !== undefined) prismaOptions.skip = Number(query.skip);
+  if (query.take !== undefined) prismaOptions.take = Number(query.take);
 
-  // Флаг обязательного подсчета
+  // 4) Флаг подсчёта общего числа
   const requireTotalCount = query.requireTotalCount === "true";
 
   return { prismaOptions, requireTotalCount };

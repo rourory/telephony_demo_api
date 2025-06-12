@@ -188,7 +188,7 @@ model envers_actions {
 
 model extra_call_permissions {
   id                 Int                 @id @default(autoincrement())
-  convictedId        Int
+  convictedId        Int                 @map("convicted_id")
   commitingDate      DateTime?           @map("commiting_date") @db.Timestamp(6)
   createdBy          String              @default("Неизвестно") @map("created_by") @db.VarChar
   updatedBy          String              @default("Неизвестно") @map("updated_by") @db.VarChar
@@ -207,78 +207,78 @@ model jwt_black_list {
 }
 
 model marked_words {
-  id         Int       @id @default(autoincrement())
-  word       String    @unique @db.VarChar
-  root       String    @unique @db.VarChar
-  created_by String?   @db.VarChar
-  updated_by String?   @db.VarChar
-  created_at DateTime? @db.Timestamp(6)
-  updated_at DateTime? @db.Timestamp(6)
+  id        Int       @id @default(autoincrement())
+  word      String    @unique @db.VarChar
+  root      String    @unique @db.VarChar
+  createdBy String?   @map("created_by") @db.VarChar
+  updatedBy String?   @map("updated_by") @db.VarChar
+  createdAt DateTime? @map("created_at") @db.Timestamp(6)
+  updatedAt DateTime? @map("updated_at") @db.Timestamp(6)
 }
 
 model permitted_durations {
   id                     Int                      @id @default(autoincrement())
   duration               Int                      @unique
-  created_by             String                   @default("Неизвестно") @db.VarChar
-  updated_by             String                   @default("Неизвестно") @db.VarChar
-  created_at             DateTime                 @default(now()) @db.Timestamp(6)
-  updated_at             DateTime                 @default(now()) @db.Timestamp(6)
+  createdBy              String                   @default("Неизвестно") @map("created_by") @db.VarChar
+  updatedBy              String                   @default("Неизвестно") @map("updated_by") @db.VarChar
+  createdAt              DateTime                 @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt              DateTime                 @default(now()) @map("updated_at") @db.Timestamp(6)
   extra_call_permissions extra_call_permissions[]
   settings               settings[]
 }
 
 model recognized_speech {
-  id             Int       @id @default(autoincrement())
-  call_id        Int
-  relative_said  String?   @db.VarChar(2000)
-  convicted_said String?   @db.VarChar(2000)
-  created_by     String    @default("Неизвестно") @db.VarChar
-  updated_by     String    @default("Неизвестно") @db.VarChar
-  created_at     DateTime  @default(now()) @db.Timestamp(6)
-  updated_at     DateTime  @default(now()) @db.Timestamp(6)
-  convicted_id   Int
-  calls          calls     @relation(fields: [call_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  convicted      convicted @relation(fields: [convicted_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  id            Int       @id @default(autoincrement())
+  callId        Int       @map("call_id")
+  relativeSaid  String?   @map("relative_said") @db.VarChar(2000)
+  convictedSaid String?   @map("convicted_said") @db.VarChar(2000)
+  createdBy     String    @default("Неизвестно") @map("created_by") @db.VarChar
+  updatedBy     String    @default("Неизвестно") @map("updated_by") @db.VarChar
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt     DateTime  @default(now()) @map("updated_at") @db.Timestamp(6)
+  convictedId   Int       @map("convicted_id")
+  calls         calls     @relation(fields: [callId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  convicted     convicted @relation(fields: [convictedId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 }
 
 model relation_types {
-  id                       Int         @id @default(autoincrement())
-  relation_type_name       String      @db.VarChar(255)
-  relation_type_short_name String      @db.VarChar(255)
-  relatives                relatives[]
+  id                    Int         @id @default(autoincrement())
+  relationTypeName      String      @map("relation_type_name") @db.VarChar(255)
+  relationTypeShortName String      @map("relation_type_short_name") @db.VarChar(255)
+  relatives             relatives[]
 }
 
 model relatives {
   id             Int            @id @default(autoincrement())
-  first_name     String         @db.VarChar(255)
-  second_name    String         @db.VarChar(255)
-  middle_name    String?        @db.VarChar(255)
-  relation_type  Int
-  convicted_id   Int
-  created_by     String         @default("Неизвестно") @db.VarChar
-  updated_by     String         @default("Неизвестно") @db.VarChar
-  created_at     DateTime       @default(now()) @db.Timestamp(6)
-  updated_at     DateTime       @default(now()) @db.Timestamp(6)
+  firstName      String         @map("first_name") @db.VarChar(255)
+  secondName     String         @map("second_name") @db.VarChar(255)
+  middleName     String?        @map("middle_name") @db.VarChar(255)
+  relationType   Int            @map("relation_type")
+  convictedId    Int            @map("convicted_id")
+  createdBy      String         @default("Неизвестно") @map("created_by") @db.VarChar
+  updatedBy      String         @default("Неизвестно") @map("updated_by") @db.VarChar
+  createdAt      DateTime       @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt      DateTime       @default(now()) @map("updated_at") @db.Timestamp(6)
   calls          calls[]
   contacts       contacts[]
-  convicted      convicted      @relation(fields: [convicted_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_relatives_convicted_1")
-  relation_types relation_types @relation(fields: [relation_type], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_relatives_relation_types_1")
+  convicted      convicted      @relation(fields: [convictedId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_relatives_convicted_1")
+  relation_types relation_types @relation(fields: [relationType], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_relatives_relation_types_1")
 }
 
 model relatives_aud {
-  id            Int       @default(autoincrement())
-  rev           Int
-  revtype       Int       @db.SmallInt
-  first_name    String?   @db.VarChar(255)
-  second_name   String?   @db.VarChar(255)
-  middle_name   String?   @db.VarChar(255)
-  relation_type Int?
-  convicted_id  Int?
-  created_by    String?   @db.VarChar
-  updated_by    String?   @db.VarChar
-  created_at    DateTime? @db.Timestamp(6)
-  updated_at    DateTime? @db.Timestamp(6)
-  revinfo       revinfo   @relation(fields: [rev], references: [rev], onDelete: NoAction, onUpdate: NoAction)
+  id           Int       @default(autoincrement())
+  rev          Int
+  revtype      Int       @db.SmallInt
+  firstName    String?   @map("first_name") @db.VarChar(255)
+  secondName   String?   @map("second_name") @db.VarChar(255)
+  middleName   String?   @map("middle_name") @db.VarChar(255)
+  relationType Int?      @map("relation_type")
+  convictedId  Int?      @map("convicted_id")
+  createdBy    String?   @map("created_by") @db.VarChar
+  updatedBy    String?   @map("updated_by") @db.VarChar
+  createdAt    DateTime? @map("created_at") @db.Timestamp(6)
+  updatedAt    DateTime? @map("updated_at") @db.Timestamp(6)
+  revinfo      revinfo   @relation(fields: [rev], references: [rev], onDelete: NoAction, onUpdate: NoAction)
 
   @@id([id, rev])
 }
@@ -359,10 +359,10 @@ model ui_permissions {
   dataPageContactsDataGridPermitted               Boolean   @default(false) @map("data_page_contacts_data_grid_permitted")
   dataPageContactsDataGridEditPermitted           Boolean   @default(false) @map("data_page_contacts_data_grid_edit_permitted")
   dataPageContactsDataGridDeletePermitted         Boolean   @default(false) @map("data_page_contacts_data_grid_delete_permitted")
-  dataPageRecognizedSpeechDgPermitted             Boolean   @default(false) @map("data_page_recognized_speech_dg_permitted")
+  dataPageRecognizedSpeechFgPermitted             Boolean   @default(false) @map("data_page_recognized_speech_dg_permitted")
   dataPageRecognizedSpeechDgEditPermitted         Boolean   @default(false) @map("data_page_recognized_speech_dg_edit_permitted")
   dataPageRecognizedSpeechDgDeletePermitted       Boolean   @default(false) @map("data_page_recognized_speech_dg_delete_permitted")
-  convPageRecognizedSpeechDgPermitted             Boolean   @default(false) @map("conv_page_recognized_speech_dg_permitted")
+  convPageRecognizedSpeechDg_permitted            Boolean   @default(false) @map("conv_page_recognized_speech_dg_permitted")
   convPageRecognizedSpeechDgEditPermitted         Boolean   @default(false) @map("conv_page_recognized_speech_dg_edit_permitted")
   convPageRecognizedSpeechDgDeletePermitted       Boolean   @default(false) @map("conv_page_recognized_speech_dg_delete_permitted")
   markedWordsPagePermitted                        Boolean   @default(false) @map("marked_words_page_permitted")

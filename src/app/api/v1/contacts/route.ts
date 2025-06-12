@@ -3,5 +3,11 @@ import { prisma } from "../../../../../prisma/prisma-clent";
 import { proceedTypicalDevextremeRequest } from "../../../../../lib/make-devextreme-request";
 
 export async function GET(req: NextRequest) {
-  return await proceedTypicalDevextremeRequest(prisma.administration, req);
+  return await proceedTypicalDevextremeRequest(prisma.contacts, req);
 }
+
+export const config = {
+  api: {
+    responseLimit: false,
+  },
+};
