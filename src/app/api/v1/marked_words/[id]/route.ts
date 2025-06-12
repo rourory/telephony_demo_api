@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { prisma } from "../../../../../../prisma/prisma-clent";
 import { findOneById } from "../../../../../../lib/find-one-by-id";
 
@@ -6,5 +6,5 @@ export async function GET(
   req: NextRequest,
   context: { params: Promise<{ id: string }> }
 ) {
-  return await findOneById(prisma.role, context);
+  return await findOneById(prisma.marked_words, context);
 }
