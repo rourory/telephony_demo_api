@@ -20,12 +20,12 @@ export const deleteOneById = async (
 
     if (result)
       return NextResponse.json(
-        { messages: `${entityName} not deleted` },
+        { messages: `${entityName} has not deleted` },
         { status: 400 }
       );
   } catch (e) {
     return NextResponse.json(
-      { messages: `${entityName} not deleted: ${e}` },
+      { messages: `${entityName} has not deleted: ${e}` },
       { status: 500 }
     );
   }
