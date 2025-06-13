@@ -13,7 +13,6 @@ export async function POST(req: NextRequest) {
       new TextEncoder().encode(process.env.JWT_SECRET!)
     );
     const username = payload.username;
-    console.log(123, payload);
 
     if (!username) {
       return NextResponse.json({ messages: ["Unauthorized"] }, { status: 401 });
