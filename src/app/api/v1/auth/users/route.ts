@@ -5,6 +5,11 @@ export async function GET(req: NextRequest) {
   const archived = req.nextUrl.searchParams.get("archived") || "";
 
   const users = await prisma.administration.findMany({
+    select: {
+      username: true,
+      id: true,
+      squadNumber: true,
+    },
     where: {
       archived: archived === "true",
     },
