@@ -11,10 +11,7 @@ const nextConfig: NextConfig = {
         headers: [
           {
             key: "Access-Control-Allow-Origin",
-            value:
-              process.env.NODE_ENV === "production"
-                ? "https://telephony-demo.vercel.app"
-                : "http://localhost:3001",
+            value: "http://localhost:3001",
           },
           {
             key: "Access-Control-Allow-Methods",
