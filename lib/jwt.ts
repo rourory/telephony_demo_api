@@ -18,8 +18,8 @@ export function getUserIdFromRefreshToken(token: string): string | null {
 }
 
 interface RefreshTokenPayload {
-  id: string;
-  username: number;
+  id: number;
+  username: string;
   roleId: number;
   squadNumber: number;
 }

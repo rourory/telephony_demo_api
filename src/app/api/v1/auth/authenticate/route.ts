@@ -34,10 +34,10 @@ export async function POST(req: NextRequest) {
   }
 
   const token = generateAccessToken({
-    id: String(user.id),
-    username: Number(user.username),
-    roleId: Number(user.roleId),
-    squadNumber: Number(user.squadNumber),
+    id: user.id,
+    username: user.username,
+    roleId: user.roleId,
+    squadNumber: user.squadNumber || 0,
   });
 
   return NextResponse.json({
