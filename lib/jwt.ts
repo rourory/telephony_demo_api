@@ -38,16 +38,7 @@ export function generateAccessToken(payload: RefreshTokenPayload): string {
   return (
     "Bearer " +
     jwt.sign(payload, JWT_SECRET, {
-      expiresIn: "1m",
-    })
-  );
-}
-
-export function generateRefreshToken(payload: RefreshTokenPayload): string {
-  return (
-    "Bearer " +
-    jwt.sign(payload, JWT_SECRET, {
-      expiresIn: "7d",
+      expiresIn: "5d",
     })
   );
 }
